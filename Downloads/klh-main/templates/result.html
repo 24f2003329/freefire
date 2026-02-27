@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}InsureAI — Damage Report{% endblock %}
+
+{% block content %}
+<section class="report-header rh-claim">
+    <div class="hero-inner">
+        <div class="hero-badge"><i class="fas fa-file-alt"></i> Damage Assessment Report</div>
+        <h1>Analysis Complete</h1>
+        <p>AI-generated repair cost estimate in ₹ INR</p>
+    </div>
+</section>
+
+<div class="report-wrap">
+
+    <!-- Pre-Approval -->
+    {% if result.pre_approval %}
+    {% set rec = result.pre_approval.recommendation | default('Review') %}
+    <div class="banner {% if rec == 'Approve' %}ban-ok{% elif rec == 'Deny' %}ban-no{% else %}ban-warn{% endif %}">
+        <div class="ban-left">
+            <div class="ban-icon">
+                {% if rec == 'Approve' %}<i class="fas fa-check-circle"></i>
+                {% elif rec == 'Deny' %}<i class="fas fa-times-circle"></i>
+                {% else %}<i class="fas fa-exclamation-circle"></i>{% endif %}
+            </div>
+            <div>
+                <h2>Pre-Approval: {{ rec }}</h2>
+                <p>{{ result.pre_approval.reasoning | default('') }}</p>
+            </div>
+        </div>
+        <div class="ban-meta">
+            <span><i class="fas fa-signal"></i> {{ result.pre_approval.confidence_level | default('N/A') }}</span>
+            <span><i class="fas fa-calendar"></i> {{ result.pre_approval.estimated_repair_days | default('?') }} days</span>
+            <span><i class="fas fa-car"></i> {% if result.pre_approval.is_drivable %}Drivable{% else %}Not Drivable{% endif %}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Row -->
+    <div class="row-2col">
+        <div class="card">
+            <div class="card-hd"><i class="fas fa-image"></i> Uploaded Image</div>
+            <div class="card-bd p0"><img src="{{ image_url }}" alt="Damage" class="dam-img"></div>
+        </div>
+        <div class="col-stack">
+            {% if result.vehicle_info %}
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-car"></i> Vehicle Info</div>
+                <div class="card-bd">
+                    <div class="info-row"><span><i class="fas fa-car-side"></i> Make/Model</span><strong>{{ result.vehicle_info.estimated_make | default('Unknown') }}</strong></div>
+                    <div class="info-row"><span><i class="fas fa-palette"></i> Color</span><strong>{{ result.vehicle_info.color | default('Unknown') }}</strong></div>
+                    <div class="info-row last"><span><i class="fas fa-truck"></i> Type</span><strong>{{ result.vehicle_info.vehicle_type | default('Unknown') }}</strong></div>
+                </div>
+            </div>
+            {% endif %}
+            {% if result.damage_assessment %}
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-exclamation-triangle"></i> Severity</div>
+                <div class="card-bd">
+                    <div class="sev-top">
+                        <span class="sev-label">Overall</span>
+                        <span class="sev-badge sev-{{ result.damage_assessment.overall_severity | default('unknown') | lower }}">{{ result.damage_assessment.overall_severity | default('Unknown') }}</span>
+                    </div>
+                    <div class="sev-bar-wrap"><div class="sev-bar" style="width:{{ (result.damage_assessment.severity_score|default(0))*10 }}%"></div></div>
+                    <span class="sev-score">{{ result.damage_assessment.severity_score | default(0) }}/10</span>
+                    <div class="summary-box"><p>{{ result.damage_assessment.damage_summary | default('N/A') }}</p></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Damaged Parts -->
+    {% if result.damage_assessment and result.damage_assessment.damaged_areas %}
+    <div class="card">
+        <div class="card-hd"><i class="fas fa-search-plus"></i> Damaged Parts <span class="badge-count">{{ result.damage_assessment.damaged_areas|length }}</span></div>
+        <div class="card-bd">
+            <div class="parts-grid">
+                {% for a in result.damage_assessment.damaged_areas %}
+                <div class="part-item">
+                    <div class="part-top"><span class="part-nm"><i class="fas fa-cog"></i> {{ a.part_name }}</span><span class="sev-chip chip-{{ a.severity|default('low')|lower }}">{{ a.severity|default('?') }}</span></div>
+                    <div class="part-det"><span class="part-type"><i class="fas fa-tag"></i> {{ a.damage_type|default('N/A') }}</span><p>{{ a.description|default('') }}</p></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cost -->
+    {% if result.cost_estimation %}
+    <div class="card">
+        <div class="card-hd"><i class="fas fa-calculator"></i> Cost Estimation (₹ INR)</div>
+        <div class="card-bd">
+            {% if result.cost_estimation.parts %}
+            <div class="tbl-wrap">
+                <table class="cost-tbl">
+                    <thead><tr><th>Part</th><th>Action</th><th>Part ₹</th><th>Hrs</th><th>Labor ₹</th><th>Total ₹</th></tr></thead>
+                    <tbody>
+                    {% for p in result.cost_estimation.parts %}
+                    <tr>
+                        <td class="td-bold">{{ p.part_name }}</td>
+                        <td><span class="act-badge act-{{ p.repair_or_replace|default('Repair')|lower }}">{{ p.repair_or_replace|default('?') }}</span></td>
+                        <td>₹{{ "{:,.0f}".format(p.estimated_part_cost|default(0)) }}</td>
+                        <td>{{ p.estimated_labor_hours|default(0) }}h</td>
+                        <td>₹{{ "{:,.0f}".format(p.estimated_labor_cost|default(0)) }}</td>
+                        <td class="td-accent">₹{{ "{:,.0f}".format((p.estimated_part_cost|default(0))+(p.estimated_labor_cost|default(0))) }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            <div class="cost-cards">
+                <div class="ccrd"><div class="ccrd-ico"><i class="fas fa-cogs"></i></div><div class="ccrd-lbl">Parts</div><div class="ccrd-val">₹{{ "{:,.0f}".format(result.cost_estimation.subtotal_parts|default(0)) }}</div></div>
+                <div class="ccrd"><div class="ccrd-ico"><i class="fas fa-wrench"></i></div><div class="ccrd-lbl">Labor</div><div class="ccrd-val">₹{{ "{:,.0f}".format(result.cost_estimation.subtotal_labor|default(0)) }}</div></div>
+                {% if result.cost_estimation.paint_and_finish and result.cost_estimation.paint_and_finish.required %}
+                <div class="ccrd"><div class="ccrd-ico"><i class="fas fa-paint-roller"></i></div><div class="ccrd-lbl">Paint</div><div class="ccrd-val">₹{{ "{:,.0f}".format(result.cost_estimation.subtotal_paint|default(0)) }}</div></div>
+                {% endif %}
+                <div class="ccrd ccrd-total"><div class="ccrd-ico"><i class="fas fa-rupee-sign"></i></div><div class="ccrd-lbl">Total</div><div class="ccrd-val">₹{{ "{:,.0f}".format(result.cost_estimation.total_estimated_cost|default(0)) }}</div></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if result.additional_notes %}
+    <div class="card"><div class="card-hd"><i class="fas fa-sticky-note"></i> Notes</div><div class="card-bd"><p class="note-text">{{ result.additional_notes }}</p></div></div>
+    {% endif %}
+
+    <div class="actions">
+        <a href="{{ url_for('claim') }}" class="btn-sec"><i class="fas fa-plus-circle"></i> New Analysis</a>
+        <button class="btn-main btn-claim" onclick="window.print()"><i class="fas fa-print"></i><span>Print Report</span></button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}InsureAI Suite — Hackathon{% endblock %}
+
+{% block content %}
+<section class="home-hero">
+    <div class="hero-inner">
+        <div class="hero-badge"><i class="fas fa-trophy"></i> Insurance AI Hackathon 2025</div>
+        <h1>InsureAI <span class="gradient-text">Suite</span></h1>
+        <p class="hero-subtitle">AI-powered insurance solutions built with Gemini Vision, RAG pipelines, ChromaDB, and Flask. Transforming how insurance claims and policies are processed.</p>
+        <div class="hero-stats">
+            <div class="stat"><div class="stat-num">2</div><div class="stat-lbl">AI Agents</div></div>
+            <div class="stat"><div class="stat-num">Gemini</div><div class="stat-lbl">Vision + LLM</div></div>
+            <div class="stat"><div class="stat-num">RAG</div><div class="stat-lbl">Pipeline</div></div>
+        </div>
+    </div>
+</section>
+
+<section class="home-section">
+    <h2 class="sec-title">Our Solutions</h2>
+    <p class="sec-sub">Click any card to get started</p>
+    <div class="solutions-grid">
+        <a href="{{ url_for('claim') }}" class="sol-card sol-claim">
+            <div class="sol-stripe"></div>
+            <div class="sol-icon"><i class="fas fa-car-crash"></i></div>
+            <div class="sol-tag">#1 · Motor Insurance</div>
+            <h3>Instant Motor-Claim Estimator</h3>
+            <p>Upload car damage photos → AI detects damage → Get repair cost estimates in ₹ INR with pre-approval.</p>
+            <div class="sol-chips">
+                <span>Gemini Vision</span><span>Computer Vision</span><span>INR Pricing</span>
+            </div>
+            <div class="sol-feats">
+                <div><i class="fas fa-check"></i> Damage Detection</div>
+                <div><i class="fas fa-check"></i> Part-wise Cost</div>
+                <div><i class="fas fa-check"></i> Pre-Approval</div>
+                <div><i class="fas fa-check"></i> Severity Score</div>
+            </div>
+            <a href="{{ url_for('negotiate') }}" class="sol-card sol-negotiate">
+    <div class="sol-stripe"></div>
+    <div class="sol-icon"><i class="fas fa-handshake"></i></div>
+    <div class="sol-tag">#7 · Insurance</div>
+    <h3>Auto-Renewal Negotiation Agent</h3>
+    <p>Enter your policy details → AI negotiates with 6 insurers → Get the best renewal rate with maximum savings.</p>
+    <div class="sol-chips">
+        <span>Agentic AI</span><span>Gemini LLM</span><span>Multi-Provider</span>
+    </div>
+    <div class="sol-feats">
+        <div><i class="fas fa-check"></i> Price Comparison</div>
+        <div><i class="fas fa-check"></i> Auto Negotiation</div>
+        <div><i class="fas fa-check"></i> Best Deal</div>
+        <div><i class="fas fa-check"></i> Savings Report</div>
+    </div>
+    <div class="sol-cta">Open Negotiator <i class="fas fa-arrow-right"></i></div>
+</a>
+            <div class="sol-cta">Open ClaimVision <i class="fas fa-arrow-right"></i></div>
+        </a>
+
+        <!-- <a href="{{ url_for('policy') }}" class="sol-card sol-policy">
+            <div class="sol-stripe"></div>
+            <div class="sol-icon"><i class="fas fa-file-medical"></i></div>
+            <div class="sol-tag">#3 · Health Insurance</div>
+            <h3>Policy Simplifier & Q&A</h3>
+            <p>Upload policy PDFs → RAG indexes content → Ask coverage questions → Get answers with page citations.</p>
+            <div class="sol-chips">
+                <span>RAG Pipeline</span><span>ChromaDB</span><span>Gemini LLM</span>
+            </div>
+            <div class="sol-feats">
+                <div><i class="fas fa-check"></i> PDF Parsing</div>
+                <div><i class="fas fa-check"></i> Vector Search</div>
+                <div><i class="fas fa-check"></i> Citations</div>
+                <div><i class="fas fa-check"></i> Coverage Verdict</div>
+            </div>
+            <div class="sol-cta">Open Policy Q&A <i class="fas fa-arrow-right"></i></div>
+        </a> -->
+    </div>
+</section>
+
+<section class="home-section">
+    <h2 class="sec-title">Tech Stack</h2>
+    <div class="tech-grid">
+        <div class="tech-card"><i class="fab fa-python"></i><h4>Python + Flask</h4><p>Backend & Jinja2</p></div>
+        <div class="tech-card"><i class="fas fa-brain"></i><h4>Gemini 2.0</h4><p>Vision & Language</p></div>
+        <div class="tech-card"><i class="fas fa-database"></i><h4>ChromaDB</h4><p>Vector Database</p></div>
+        <div class="tech-card"><i class="fas fa-eye"></i><h4>Computer Vision</h4><p>Damage Detection</p></div>
+        <div class="tech-card"><i class="fas fa-file-pdf"></i><h4>Document AI</h4><p>PDF Extraction</p></div>
+        <div class="tech-card"><i class="fas fa-project-diagram"></i><h4>RAG</h4><p>Retrieval Pipeline</p></div>
+    </div>
+</section>
+{% endblock %}

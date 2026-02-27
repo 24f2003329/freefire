@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}InsureAI — Policy Q&A{% endblock %}
+
+{% block content %}
+<section class="hero hero-policy">
+    <div class="hero-inner">
+        <div class="hero-badge"><i class="fas fa-file-medical"></i> Health Insurance AI</div>
+        <h1>Policy <span class="gradient-text">Simplifier</span></h1>
+        <p class="hero-subtitle">Upload health insurance policy PDFs and ask coverage questions in plain English. Powered by RAG + Gemini.</p>
+    </div>
+</section>
+
+<div class="policy-wrap">
+    <div class="policy-grid">
+        <!-- Left: Upload + Policies -->
+        <div class="pol-left">
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-upload"></i> Upload Policy PDF</div>
+                <div class="card-bd">
+                    <form action="{{ url_for('upload_policy') }}" method="POST" enctype="multipart/form-data" id="polForm">
+                        <div class="fg">
+                            <label class="fl">Policy Name</label>
+                            <input type="text" name="policy_name" class="finput" placeholder="e.g. Star Health Gold 2024">
+                        </div>
+                        <div class="upload-area upload-sm" id="pdfDrop">
+                            <div id="pdfIco"><i class="fas fa-file-pdf pdf-ico"></i></div>
+                            <p id="pdfText" class="upload-hint">Click or drag PDF here</p>
+                            <input type="file" name="policy_pdf" id="pdfInput" accept=".pdf" required hidden>
+                        </div>
+                        <button type="submit" class="btn-main btn-policy" id="polBtn" disabled>
+                            <i class="fas fa-cloud-upload-alt"></i><span>Upload & Ingest</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-folder-open"></i> Ingested Policies <span class="badge-count">{{ policies|length }}</span></div>
+                <div class="card-bd">
+                    {% if policies %}
+                    {% for p in policies %}
+                    <div class="pol-item">
+                        <div class="pol-info">
+                            <i class="fas fa-file-alt pol-file-ico"></i>
+                            <div><strong>{{ p.policy_name }}</strong><span class="pol-meta">{{ p.chunks }} chunks</span></div>
+                        </div>
+                        <form action="{{ url_for('remove_policy', policy_id=p.policy_id) }}" method="POST" style="margin:0">
+                            <button type="submit" class="btn-del" onclick="return confirm('Delete this policy?')"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty"><i class="fas fa-inbox"></i><p>No policies yet. Upload a PDF above.</p></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Ask -->
+        <div class="pol-right">
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-comments"></i> Ask a Coverage Question</div>
+                <div class="card-bd">
+                    {% if policies %}
+                    <form action="{{ url_for('ask_policy') }}" method="POST" id="askForm">
+                        <div class="fg">
+                            <label class="fl">Select Policy</label>
+                            <select name="policy_id" class="finput" required>
+                                <option value="">-- Choose a policy --</option>
+                                {% for p in policies %}
+                                <option value="{{ p.policy_id }}">{{ p.policy_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Your Question</label>
+                            <textarea name="question" class="finput ftarea" rows="4" placeholder="e.g. Is knee replacement surgery covered?" required></textarea>
+                        </div>
+                        <div class="samples">
+                            <p class="samples-lbl"><i class="fas fa-lightbulb"></i> Try:</p>
+                            <div class="sample-chips">
+                                <button type="button" class="s-chip" onclick="setQ(this)">Is knee replacement surgery covered?</button>
+                                <button type="button" class="s-chip" onclick="setQ(this)">What is the waiting period for pre-existing diseases?</button>
+                                <button type="button" class="s-chip" onclick="setQ(this)">Are dental treatments covered?</button>
+                                <button type="button" class="s-chip" onclick="setQ(this)">What is the room rent limit?</button>
+                                <button type="button" class="s-chip" onclick="setQ(this)">Is maternity covered?</button>
+                                <button type="button" class="s-chip" onclick="setQ(this)">What are the exclusions?</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-main btn-policy" id="askBtn">
+                            <i class="fas fa-search"></i><span>Get Answer</span>
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="empty empty-lg"><i class="fas fa-file-upload"></i><h3>Upload a Policy First</h3><p>Upload a PDF on the left, then ask questions here.</p></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-hd"><i class="fas fa-project-diagram"></i> How RAG Works</div>
+                <div class="card-bd">
+                    <div class="rag-list">
+                        <div class="rag-item"><div class="rag-n">1</div><div><strong>PDF Parsing</strong><p>Extract text from each page</p></div></div>
+                        <div class="rag-item"><div class="rag-n">2</div><div><strong>Chunk & Embed</strong><p>Split into chunks, embed via Gemini</p></div></div>
+                        <div class="rag-item"><div class="rag-n">3</div><div><strong>Vector Store</strong><p>Store in ChromaDB for similarity search</p></div></div>
+                        <div class="rag-item"><div class="rag-n">4</div><div><strong>Retrieve</strong><p>Find most relevant chunks for your question</p></div></div>
+                        <div class="rag-item"><div class="rag-n">5</div><div><strong>Generate</strong><p>Gemini answers with citations from context</p></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const pd=document.getElementById('pdfDrop'),pi=document.getElementById('pdfInput'),
+pico=document.getElementById('pdfIco'),pt=document.getElementById('pdfText'),
+pb=document.getElementById('polBtn'),pf=document.getElementById('polForm');
+
+pd.onclick=()=>pi.click();
+pd.ondragover=e=>{e.preventDefault();pd.classList.add('drag-over')};
+pd.ondragleave=()=>pd.classList.remove('drag-over');
+pd.ondrop=e=>{e.preventDefault();pd.classList.remove('drag-over');if(e.dataTransfer.files.length){pi.files=e.dataTransfer.files;pprev(e.dataTransfer.files[0])}};
+pi.onchange=e=>{if(e.target.files.length)pprev(e.target.files[0])};
+
+function pprev(f){pico.innerHTML='<i class="fas fa-file-pdf pdf-ico pdf-ok"></i>';pt.textContent=f.name+' ('+( f.size/1048576).toFixed(2)+' MB)';pb.disabled=false}
+
+if(pf)pf.onsubmit=()=>{pb.disabled=true;pb.innerHTML='<i class="fas fa-spinner fa-spin"></i><span>Ingesting...</span>'};
+
+function setQ(b){document.querySelector('textarea[name="question"]').value=b.textContent}
+
+const af=document.getElementById('askForm');
+if(af)af.onsubmit=()=>{const b=document.getElementById('askBtn');b.disabled=true;b.innerHTML='<i class="fas fa-spinner fa-spin"></i><span>Searching...</span>'};
+</script>
+{% endblock %}

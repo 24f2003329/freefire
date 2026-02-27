@@ -1,0 +1,128 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}ClaimVision AI — Upload Damage Photo{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge"><i class="fas fa-bolt"></i> AI-Powered Insurance Claims</div>
+        <h1>Instant Motor Claim<br><span class="gradient-text">Cost Estimator</span></h1>
+        <p class="hero-subtitle">Upload a photo of your vehicle damage and get an instant AI-powered repair cost estimate in ₹ INR with pre-approval recommendation.</p>
+    </div>
+</section>
+
+<section class="upload-section">
+    <div class="upload-card">
+        <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-area" id="dropZone">
+                <div class="upload-icon" id="uploadIcon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <img id="imagePreview" class="image-preview" style="display:none;" alt="Preview">
+                <h3 id="uploadText">Drag & Drop or Click to Upload</h3>
+                <p id="uploadHint" class="upload-hint">Supports PNG, JPG, JPEG, WEBP — Max 16MB</p>
+                <input type="file" name="car_image" id="fileInput" accept=".png,.jpg,.jpeg,.webp" required hidden>
+            </div>
+
+            <div class="features-row">
+                <div class="feature-chip">
+                    <i class="fas fa-search"></i> Damage Detection
+                </div>
+                <div class="feature-chip">
+                    <i class="fas fa-rupee-sign"></i> INR Cost Estimate
+                </div>
+                <div class="feature-chip">
+                    <i class="fas fa-check-circle"></i> Pre-Approval
+                </div>
+            </div>
+
+            <button type="submit" class="btn-analyze" id="analyzeBtn" disabled>
+                <i class="fas fa-microscope"></i>
+                <span>Analyze Damage</span>
+            </button>
+        </form>
+    </div>
+</section>
+
+<section class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon"><i class="fas fa-camera"></i></div>
+            <h3>Upload Photo</h3>
+            <p>Take a clear photo of the vehicle damage and upload it.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon"><i class="fas fa-robot"></i></div>
+            <h3>AI Analysis</h3>
+            <p>Our Gemini Vision AI identifies all damaged parts and severity.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <h3>Get Estimate</h3>
+            <p>Receive detailed cost breakdown in ₹ INR with pre-approval.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadIcon = document.getElementById('uploadIcon');
+    const uploadText = document.getElementById('uploadText');
+    const uploadHint = document.getElementById('uploadHint');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadForm = document.getElementById('uploadForm');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            showPreview(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            showPreview(e.target.files[0]);
+        }
+    });
+
+    function showPreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            uploadIcon.style.display = 'none';
+            uploadText.textContent = file.name;
+            uploadHint.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB — Click to change`;
+            analyzeBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    uploadForm.addEventListener('submit', () => {
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Analyzing... This may take a moment</span>';
+    });
+</script>
+{% endblock %}

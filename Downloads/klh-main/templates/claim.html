@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}InsureAI — ClaimVision AI{% endblock %}
+
+{% block content %}
+<section class="hero hero-claim">
+    <div class="hero-inner">
+        <div class="hero-badge"><i class="fas fa-bolt"></i> AI-Powered Motor Claims</div>
+        <h1>ClaimVision <span class="gradient-text">AI</span></h1>
+        <p class="hero-subtitle">Upload a photo of vehicle damage and get instant repair cost estimates in ₹ INR with pre-approval recommendation.</p>
+    </div>
+</section>
+
+<section class="upload-section">
+    <div class="upload-card">
+        <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-area" id="dropZone">
+                <div class="upload-icon" id="uploadIcon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <img id="imagePreview" class="img-preview" style="display:none;" alt="Preview">
+                <h3 id="uploadText">Drag & Drop or Click to Upload</h3>
+                <p id="uploadHint" class="upload-hint">PNG, JPG, JPEG, WEBP — Max 16MB</p>
+                <input type="file" name="car_image" id="fileInput" accept=".png,.jpg,.jpeg,.webp" required hidden>
+            </div>
+            <div class="chip-row">
+                <span class="chip"><i class="fas fa-search"></i> Damage Detection</span>
+                <span class="chip"><i class="fas fa-rupee-sign"></i> INR Estimate</span>
+                <span class="chip"><i class="fas fa-check-circle"></i> Pre-Approval</span>
+            </div>
+            <button type="submit" class="btn-main btn-claim" id="analyzeBtn" disabled>
+                <i class="fas fa-microscope"></i><span>Analyze Damage</span>
+            </button>
+        </form>
+    </div>
+</section>
+
+<section class="home-section">
+    <h2 class="sec-title">How It Works</h2>
+    <div class="steps-grid">
+        <div class="step-card"><div class="step-num">1</div><div class="step-ico"><i class="fas fa-camera"></i></div><h4>Upload Photo</h4><p>Take a clear photo of vehicle damage and upload it.</p></div>
+        <div class="step-card"><div class="step-num">2</div><div class="step-ico"><i class="fas fa-robot"></i></div><h4>AI Analysis</h4><p>Gemini Vision AI identifies damaged parts and severity.</p></div>
+        <div class="step-card"><div class="step-num">3</div><div class="step-ico"><i class="fas fa-file-invoice-dollar"></i></div><h4>Get Estimate</h4><p>Receive cost breakdown in ₹ INR with pre-approval status.</p></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dz=document.getElementById('dropZone'),fi=document.getElementById('fileInput'),
+ip=document.getElementById('imagePreview'),ui=document.getElementById('uploadIcon'),
+ut=document.getElementById('uploadText'),uh=document.getElementById('uploadHint'),
+ab=document.getElementById('analyzeBtn'),uf=document.getElementById('uploadForm');
+
+dz.onclick=()=>fi.click();
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag-over')};
+dz.ondragleave=()=>dz.classList.remove('drag-over');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;prev(e.dataTransfer.files[0])}};
+fi.onchange=e=>{if(e.target.files.length)prev(e.target.files[0])};
+
+function prev(f){const r=new FileReader();r.onload=e=>{ip.src=e.target.result;ip.style.display='block';ui.style.display='none';ut.textContent=f.name;uh.textContent=`${(f.size/1048576).toFixed(2)} MB`;ab.disabled=false};r.readAsDataURL(f)}
+
+uf.onsubmit=()=>{ab.disabled=true;ab.innerHTML='<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>'};
+</script>
+{% endblock %}
